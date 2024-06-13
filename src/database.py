@@ -38,6 +38,14 @@ class SoundpadDatabase:
             )
         ''')
 
+        cursor.execute('''
+               CREATE TABLE IF NOT EXISTS settings (
+                   id INTEGER PRIMARY KEY,
+                   volume REAL DEFAULT 1.0,
+                   playback_speed REAL DEFAULT 1.0
+               )
+           ''')
+
         conn.commit()
         conn.close()
 
@@ -66,6 +74,10 @@ class SoundpadDatabase:
                         'INSERT INTO sounds (category_id, name, file_name) VALUES ((SELECT id FROM categories WHERE name=?), ?, ?)',
                         (category, sound_file.split('.')[0], file_name))
 
+        cursor.execute('SELECT COUNT(*) FROM settings')
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('INSERT INTO settings (volume, playback_speed) VALUES (?, ?)', (1.0, 1.0))
+
         conn.commit()
         conn.close()
 
@@ -86,3 +98,36 @@ class SoundpadDatabase:
         sounds = cursor.fetchall()
         conn.close()
         return sounds
+
+    def get_hotkeys(self):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT sounds.name, hotkeys.hotkey FROM hotkeys
+            JOIN sounds ON hotkeys.sound_id = sounds.id
+        ''')
+        hotkeys = cursor.fetchall()
+        conn.close()
+        return hotkeys
+
+    def add_hotkey(self, sound_id, hotkey):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO hotkeys (sound_id, hotkey) VALUES (?, ?)', (sound_id, hotkey))
+        conn.commit()
+        conn.close()
+
+    def get_settings(self):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('SELECT volume, playback_speed FROM settings WHERE id = 1')
+        settings = cursor.fetchone()
+        conn.close()
+        return settings or (1.0, 1.0)
+
+    def update_settings(self, volume, playback_speed):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('REPLACE INTO settings (id, volume, playback_speed) VALUES (1, ?, ?)', (volume, playback_speed))
+        conn.commit()
+        conn.close()
