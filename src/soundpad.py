@@ -5,7 +5,6 @@ from sound_player import SoundPlayer
 from settings import SettingsWindow
 import os
 
-
 class SoundpadApp(QMainWindow):
     def __init__(self, db):
         super().__init__()
@@ -90,13 +89,14 @@ class SoundpadApp(QMainWindow):
         sounds = self.db.get_sounds_by_category(category)
 
         sound_path = next((sound[1] for sound in sounds if sound[0] == sound_name), None)
+        volume, playback_speed = self.db.get_settings()
 
         if sound_path:
             try:
                 if self.current_player and self.current_player.is_playing():
                     self.current_player.stop()
 
-                self.current_player = SoundPlayer(sound_path)
+                self.current_player = SoundPlayer(sound_path, volume, playback_speed)
                 self.current_player.play_async()
             except Exception as e:
                 QMessageBox.critical(self, "Ошибка", f"Не удалось воспроизвести звук: {e}")
