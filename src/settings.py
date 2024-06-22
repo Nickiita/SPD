@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSlider, QPushButton
 from PyQt5.QtCore import Qt
 
+
 class SettingsWindow(QDialog):
     def __init__(self, db, main_window):
         super().__init__()
@@ -8,7 +9,8 @@ class SettingsWindow(QDialog):
         self.main_window = main_window
         self.initUI()
         self.load_settings()
-        self.setGeometry(main_window.geometry())
+        self.main_window_pos = None
+        self.main_window_size = None
 
     def initUI(self):
         self.setWindowTitle("Настройки")
@@ -52,6 +54,15 @@ class SettingsWindow(QDialog):
         volume = self.volume_slider.value() / 100
         playback_speed = self.speed_slider.value() / 100
         self.db.update_settings(volume, playback_speed)
-        self.main_window.setGeometry(self.geometry())
-        self.main_window.show()
+
+        # Сохраняем координаты и размеры главного окна перед его скрытием
+        self.main_window_pos = self.main_window.pos()
+        self.main_window_size = self.main_window.size()
+
+        self.main_window.hide()  # Скрываем главное окно
         self.close()
+
+        # Показываем главное окно и устанавливаем его координаты и размеры
+        self.main_window.resize(self.main_window_size)
+        self.main_window.move(self.main_window_pos)
+        self.main_window.show()
