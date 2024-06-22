@@ -1,7 +1,6 @@
 import sqlite3
 import os
 
-
 class SoundpadDatabase:
     def __init__(self, db_name):
         self.db_name = db_name
@@ -57,16 +56,13 @@ class SoundpadDatabase:
 
         cursor.execute('SELECT COUNT(*) FROM categories')
         if cursor.fetchone()[0] == 0:
-
             for category in categories:
                 cursor.execute('INSERT INTO categories (name) VALUES (?)', (category,))
 
         cursor.execute('SELECT COUNT(*) FROM sounds')
         if cursor.fetchone()[0] == 0:
-
             for category in categories:
                 sound_folder = os.path.join('..', 'resources', 'sounds', category)
-
                 sound_files = os.listdir(sound_folder)
                 for sound_file in sound_files:
                     file_name = os.path.join(sound_folder, sound_file)
@@ -93,7 +89,7 @@ class SoundpadDatabase:
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT name, file_name FROM sounds WHERE category_id = (SELECT id FROM categories WHERE name = ?)',
+            'SELECT id, name, file_name FROM sounds WHERE category_id = (SELECT id FROM categories WHERE name = ?)',
             (category,))
         sounds = cursor.fetchall()
         conn.close()
@@ -129,5 +125,20 @@ class SoundpadDatabase:
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute('REPLACE INTO settings (id, volume, playback_speed) VALUES (1, ?, ?)', (volume, playback_speed))
+        conn.commit()
+        conn.close()
+
+    def add_sound(self, category, name, file_name):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO sounds (category_id, name, file_name) VALUES ((SELECT id FROM categories WHERE name=?), ?, ?)', (category, name, file_name))
+        conn.commit()
+        conn.close()
+
+    def remove_sound(self, sound_id):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM sounds WHERE id = ?', (sound_id,))
+        cursor.execute('DELETE FROM hotkeys WHERE sound_id = ?', (sound_id,))
         conn.commit()
         conn.close()
