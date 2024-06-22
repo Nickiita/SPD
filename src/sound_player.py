@@ -11,20 +11,37 @@ class SoundPlayer:
         self.stream = None
         self.sound_data = self.adjust_volume(self.sound_data, self.volume)
         self.sample_rate = int(self.sample_rate * self.playback_speed)
+        self.playing = False
 
     def adjust_volume(self, data, volume):
         return data * volume
 
     def play(self):
-        sd.play(self.sound_data, self.sample_rate)
-        sd.wait()
+        try:
+            self.stream = sd.OutputStream(samplerate=self.sample_rate, channels=len(self.sound_data.shape))
+            self.stream.start()
+            self.playing = True
+            sd.play(self.sound_data, self.sample_rate)
+            sd.wait()
+
+        finally:
+            if self.stream is not None:
+                self.stream.stop()
+                self.stream.close()
+            self.playing = False
+            self.stream = None
 
     def play_async(self):
         thread = threading.Thread(target=self.play)
         thread.start()
 
     def is_playing(self):
-        return self.stream is not None
+        return self.playing
 
     def stop(self):
+        self.playing = False
+        if self.stream is not None:
+            self.stream.stop()
+            self.stream.close()
         sd.stop()
+        self.stream = None
