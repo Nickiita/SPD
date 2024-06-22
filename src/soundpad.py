@@ -1,9 +1,12 @@
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget,
-                             QComboBox, QMessageBox, QInputDialog, QFileDialog)
+from PyQt5.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget,
+    QComboBox, QMessageBox, QInputDialog, QFileDialog, QApplication, QDialog
+)
 from PyQt5.QtGui import QGuiApplication
 from sound_player import SoundPlayer
 from settings import SettingsWindow
 import os
+
 
 class SoundpadApp(QMainWindow):
     def __init__(self, db):
@@ -15,6 +18,7 @@ class SoundpadApp(QMainWindow):
         self.load_hotkeys()
         self.center_x = None
         self.center_y = None
+        self.settings_window_pos = None  # Переменная для хранения координат окна настроек
 
     def initUI(self):
         self.setWindowTitle("Soundpad")
@@ -126,12 +130,27 @@ class SoundpadApp(QMainWindow):
     def stop_sound(self):
         if self.current_player and self.current_player.is_playing():
             self.current_player.stop()
+            self.current_player = None
 
     def open_settings(self):
-        self.center_x = self.pos().x()
-        self.center_y = self.pos().y()
         settings_window = SettingsWindow(self.db, self)
+
+        # Сохраняем текущие размеры и координаты главного окна
+        self.settings_window_pos = self.pos()
+        self.settings_window_size = self.size()
+
+        self.hide()  # Скрываем главное окно
+
+        # Показываем окно настроек и устанавливаем его размеры и координаты
+        settings_window.resize(self.settings_window_size)
+        settings_window.move(self.settings_window_pos)
         settings_window.exec_()
+
+        # После закрытия настроек восстанавливаем координаты и размеры главного окна
+        self.resize(self.settings_window_size)
+        self.move(self.settings_window_pos)
+
+        self.show()  # Показываем главное окно снова
 
     def add_hotkey(self):
         selected_item = self.sound_list.currentItem()
@@ -183,7 +202,16 @@ class SoundpadApp(QMainWindow):
         sound_id = next((sound[0] for sound in sounds if sound[1] == sound_name), None)
 
         if sound_id:
-            self.db.remove_sound(sound_id)
-            self.update_sound_list()
+            confirmation_box = QMessageBox(self)
+            confirmation_box.setWindowTitle('Подтверждение удаления')
+            confirmation_box.setText(f'Вы точно хотите удалить звук "{sound_name}"?')
+            confirmation_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            confirmation_box.button(QMessageBox.Yes).setText("Да")
+            confirmation_box.button(QMessageBox.No).setText("Нет")
+            reply = confirmation_box.exec_()
+
+            if reply == QMessageBox.Yes:
+                self.db.remove_sound(sound_id)
+                self.update_sound_list()
         else:
             QMessageBox.critical(self, "Ошибка", "Не удалось найти звук для удаления")
