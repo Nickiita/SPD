@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSlider, QPushButton
 from PyQt5.QtCore import Qt
 
-
 class SettingsWindow(QDialog):
     def __init__(self, db, main_window):
         super().__init__()
