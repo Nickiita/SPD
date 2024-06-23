@@ -5,13 +5,16 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QGuiApplication
 from sound_player import SoundPlayer
 from settings import SettingsWindow
-import os
+from hotkey_manager import HotkeyManager
+
+import keyboard
 
 
 class SoundpadApp(QMainWindow):
     def __init__(self, db):
         super().__init__()
         self.db = db
+        self.hotkey_manager = HotkeyManager(db)
         self.current_player = None
         self.initUI()
         self.load_categories()
@@ -51,6 +54,10 @@ class SoundpadApp(QMainWindow):
         self.add_hotkey_button = QPushButton("Добавить горячую клавишу")
         self.add_hotkey_button.clicked.connect(self.add_hotkey)
         self.button_layout.addWidget(self.add_hotkey_button)
+
+        self.remove_hotkey_button = QPushButton("Удалить горячую клавишу")
+        self.remove_hotkey_button.clicked.connect(self.remove_hotkey)
+        self.button_layout.addWidget(self.remove_hotkey_button)
 
         self.stop_button = QPushButton("Остановить звук")
         self.stop_button.clicked.connect(self.stop_sound)
@@ -127,6 +134,17 @@ class SoundpadApp(QMainWindow):
         else:
             QMessageBox.critical(self, "Ошибка", "Не удалось найти файл звука")
 
+    def play_sound_by_path(self, sound_path):
+        volume, playback_speed = self.db.get_settings()
+        try:
+            if self.current_player and self.current_player.is_playing():
+                self.current_player.stop()
+
+            self.current_player = SoundPlayer(sound_path, volume, playback_speed)
+            self.current_player.play_async()
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", f"Не удалось воспроизвести звук: {e}")
+
     def stop_sound(self):
         if self.current_player and self.current_player.is_playing():
             self.current_player.stop()
@@ -163,14 +181,36 @@ class SoundpadApp(QMainWindow):
         sounds = self.db.get_sounds_by_category(category)
 
         sound_id = next((sound[0] for sound in sounds if sound[1] == sound_name), None)
+        sound_path = next((sound[2] for sound in sounds if sound[1] == sound_name), None)
 
-        if sound_id:
-            hotkey, ok = QInputDialog.getText(self, "Горячая клавиша", "Введите комбинацию клавиш:")
-            if ok and hotkey:
-                self.db.add_hotkey(sound_id, hotkey)
+        if sound_id and sound_path:
+            new_hotkey = self.hotkey_manager.assign_hotkey(sound_id)
+            if new_hotkey:
+                keyboard.add_hotkey(new_hotkey, lambda path=sound_path: self.play_sound_by_path(path))
                 self.update_sound_list()
         else:
-            QMessageBox.critical(self, "Ошибка", "Не удалось найти звук для добавления горячей клавиши")
+            QMessageBox.critical(self, "Ошибка",
+                                 "Не удалось найти звук или путь к звуку для добавления горячей клавиши")
+
+    def remove_hotkey(self):
+        selected_item = self.sound_list.currentItem()
+        if not selected_item:
+            QMessageBox.critical(self, "Ошибка", "Пожалуйста, выберите звук для удаления горячей клавиши")
+            return
+
+        sound_name = selected_item.text().split(' (')[0]
+        category = self.category_combo.currentText()
+        sounds = self.db.get_sounds_by_category(category)
+
+        sound_id = next((sound[0] for sound in sounds if sound[1] == sound_name), None)
+        hotkey = next((hk[1] for hk in self.db.get_hotkeys() if hk[0] == sound_name), None)
+
+        if sound_id and hotkey:
+            self.hotkey_manager.remove_hotkey(sound_id)
+            keyboard.remove_hotkey(hotkey)
+            self.update_sound_list()
+        else:
+            QMessageBox.critical(self, "Ошибка", "Не удалось найти звук для удаления горячей клавиши")
 
     def add_sound(self):
         category = self.category_combo.currentText()
