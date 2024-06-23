@@ -1,6 +1,7 @@
 import sqlite3
 import os
 
+
 class SoundpadDatabase:
     def __init__(self, db_name):
         self.db_name = db_name
@@ -131,7 +132,9 @@ class SoundpadDatabase:
     def add_sound(self, category, name, file_name):
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO sounds (category_id, name, file_name) VALUES ((SELECT id FROM categories WHERE name=?), ?, ?)', (category, name, file_name))
+        cursor.execute(
+            'INSERT INTO sounds (category_id, name, file_name) VALUES ((SELECT id FROM categories WHERE name=?), ?, ?)',
+            (category, name, file_name))
         conn.commit()
         conn.close()
 
@@ -142,3 +145,18 @@ class SoundpadDatabase:
         cursor.execute('DELETE FROM hotkeys WHERE sound_id = ?', (sound_id,))
         conn.commit()
         conn.close()
+
+    def remove_hotkey(self, sound_id):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM hotkeys WHERE sound_id = ?', (sound_id,))
+        conn.commit()
+        conn.close()
+
+    def get_sound_path_by_name(self, sound_name):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('SELECT file_name FROM sounds WHERE name = ?', (sound_name,))
+        sound_path = cursor.fetchone()
+        conn.close()
+        return sound_path[0] if sound_path else None
