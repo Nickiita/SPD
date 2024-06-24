@@ -28,8 +28,8 @@ Soundpad - это приложение, которое позволяет пол
 ![Desktop Screenshot 2024 06 24 - 19 53 58 61](https://github.com/Nickiita/SPD/assets/91239645/f32e00ab-5fd8-405f-9a11-cc9b20fc4956)
 ![Desktop Screenshot 2024 06 24 - 19 41 13 93](https://github.com/Nickiita/SPD/assets/91239645/0c6624cd-9735-4950-96d3-50714c6e99fc)
 ![Desktop Screenshot 2024 06 24 - 19 40 45 09](https://github.com/Nickiita/SPD/assets/91239645/24e808ea-37fd-44e7-9b1f-e04e69e4b38f)
-![Desktop Screenshot 2024 06 24 - 19 38 51 50](https://github.com/Nickiita/SPD/assets/91239645/14dd87ee-9297-4b32-b2eb-d17907501562)
-![Desktop Screenshot 2024 06 24 - 19 38 24 50](https://github.com/Nickiita/SPD/assets/91239645/205d9ca9-1a3f-48a6-a531-cc909a122c77)
+![msg1436307581-20620](https://github.com/Nickiita/SPD/assets/91239645/2fa141a3-6281-45c6-979c-319cc5256bd9)
+
 
 
 ## Авторы
