@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget,
-    QComboBox, QMessageBox, QInputDialog, QFileDialog, QApplication, QDialog
+    QComboBox, QMessageBox, QInputDialog, QFileDialog
 )
-from PyQt5.QtGui import QGuiApplication
+
+from PyQt5.QtGui import QGuiApplication, QPixmap, QPalette, QBrush, QIcon
 from sound_player import SoundPlayer
 from settings import SettingsWindow
 from hotkey_manager import HotkeyManager
@@ -21,11 +22,14 @@ class SoundpadApp(QMainWindow):
         self.load_hotkeys()
         self.center_x = None
         self.center_y = None
-        self.settings_window_pos = None  # Переменная для хранения координат окна настроек
+        self.settings_window_pos = None
 
     def initUI(self):
         self.setWindowTitle("Soundpad")
         self.setGeometry(100, 100, 500, 500)
+
+        self.set_background_image("../resources/images/back_ground.jpeg")
+        self.setWindowIcon(QIcon('../resources/images/icon_main.png'))
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -72,6 +76,12 @@ class SoundpadApp(QMainWindow):
         self.button_layout.addWidget(self.remove_sound_button)
 
         self.layout.addLayout(self.button_layout)  # Добавляем горизонтальный макет в основной вертикальный макет
+
+    def set_background_image(self, image_path):
+        palette = QPalette()
+        pixmap = QPixmap(image_path)
+        palette.setBrush(QPalette.Background, QBrush(pixmap))
+        self.setPalette(palette)
 
     def showEvent(self, event):
         super().showEvent(event)
