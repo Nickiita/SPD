@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSlider, QPushButton
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QBrush, QPalette, QIcon
 
 
 class SettingsWindow(QDialog):
@@ -14,6 +15,9 @@ class SettingsWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle("Настройки")
+
+        self.set_background_image("../resources/images/back_ground.jpeg")
+        self.setWindowIcon(QIcon('../resources/images/icon_settings.png'))
 
         self.layout = QVBoxLayout()
 
@@ -38,6 +42,12 @@ class SettingsWindow(QDialog):
         self.layout.addWidget(self.save_button)
 
         self.setLayout(self.layout)
+
+    def set_background_image(self, image_path):
+        palette = QPalette()
+        pixmap = QPixmap(image_path)
+        palette.setBrush(QPalette.Background, QBrush(pixmap))
+        self.setPalette(palette)
 
     def load_settings(self):
         volume, playback_speed = self.db.get_settings()
